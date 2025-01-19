@@ -7,13 +7,16 @@ Game::Game()
     renderer = nullptr;
     isRunning = true;
     tickCount = 0;
-    paddleDir = 0;
-    bVelocity = {200.0f, -235.0f};
+//    paddleDir = 0;
+    bVelocity = {-200.0f, 235.0f};
 
     // Set the Ball to the center of the screen, center pos
     ballPos = {1080 / 2.0, 720 / 2.0};
     // Set the Paddle to the left side of the screen, center pos
-    paddlePos = { 10.0f, (720 / 2.0) };
+//    paddlePos = { 10.0f, (720 / 2.0) };
+
+    lPaddle = {10.0f, (720 / 2.0f)}, 0;
+    rPaddle = {1070.0f, (720 /2.0f), 0};
 }
 
 bool Game::Init()
@@ -68,16 +71,36 @@ void Game::ProcessInput()
     {
         isRunning = false;
     }
+//    ballDir = 0;
+//    if (state[SDL_SCANCODE_A])
+//    {
+//        ballDir = -1;
+//    }
+//    if (state[SDL_SCANCODE_D])
+//    {
+//        ballDir = 1;
+//    }
 
-    paddleDir = 0;
+    lPaddle.paddleDir = 0;
     if (state[SDL_SCANCODE_W])
     {
-        paddleDir = -1;
+        lPaddle.paddleDir = -1;
     }
     if (state[SDL_SCANCODE_S])
     {
-        paddleDir = 1;
+        lPaddle.paddleDir = 1;
     }
+
+    rPaddle.paddleDir = 0;
+    if (state[SDL_SCANCODE_UP])
+    {
+        rPaddle.paddleDir = -1;
+    }
+    if (state[SDL_SCANCODE_DOWN])
+    {
+        rPaddle.paddleDir = 1;
+    }
+
 }
 
 void Game::UpdateGame()
@@ -88,37 +111,65 @@ void Game::UpdateGame()
 
         float deltaTime = (SDL_GetTicks() - tickCount) / 1000.0f;
         tickCount = SDL_GetTicks();
+//        bVelocity = {0,0};
+//        SDL_Log("Left Paddle Pos %f : %f",lPaddle.pos.x, lPaddle.pos.y);
+//        SDL_Log("Right Paddle Pos %f : %f",rPaddle.pos.x, rPaddle.pos.y);
 
         // Clamp Delta time
         if (deltaTime > 0.05f)
         {
             deltaTime = 0.05f;
         }
-
-        // TODO Update objects in world
-        if (paddleDir != 0)
+        
+        
+        if (lPaddle.paddleDir != 0)
         {
-            paddlePos.y += paddleDir * paddleSpeed * deltaTime;
+            lPaddle.pos.y += lPaddle.paddleDir * paddleSpeed * deltaTime;
             // Clamp paddle to screen bounds
-            if (paddlePos.y < (pHeight/2.0f + thickness))
+            if (lPaddle.pos.y < (pHeight/2.0f + thickness))
             {
-                paddlePos.y = pHeight/2.0f + thickness;
+                lPaddle.pos.y = pHeight/2.0f + thickness;
             }
-            if (paddlePos.y > (720.0f - pHeight/2.0f - thickness + 10))
+            if (lPaddle.pos.y > (720.0f - pHeight/2.0f - thickness + 10))
             {
-                paddlePos.y = 720.0f - pHeight/2.0f - thickness + 10;
+                lPaddle.pos.y = 720.0f - pHeight/2.0f - thickness + 10;
             }
         }
 
-        // Update Ball pos
-        ballPos.x += bVelocity.x * deltaTime;
-        ballPos.y += bVelocity.y * deltaTime;
+//        if (ballDir != 0)
+//        {
+//            ballPos.x += ballDir * 200 * deltaTime;
+//        }
+
+    if (rPaddle.paddleDir != 0)
+    {
+        rPaddle.pos.y += rPaddle.paddleDir * paddleSpeed * deltaTime;
+        // Clamp paddle to screen bounds
+        if (rPaddle.pos.y < (pHeight/2.0f + thickness))
+        {
+            rPaddle.pos.y = pHeight/2.0f + thickness;
+        }
+        if (rPaddle.pos.y > (720.0f - pHeight/2.0f - thickness + 10))
+        {
+            rPaddle.pos.y = 720.0f - pHeight/2.0f - thickness + 10;
+        }
+    }
+
+    ballPos.x += bVelocity.x * deltaTime;
+    ballPos.y += bVelocity.y * deltaTime;
 
     // Bounce if needed
     // Did we intersect with the paddle?
-    float diff = paddlePos.y - ballPos.y;
+    float diff = lPaddle.pos.y - ballPos.y;
+    float diffR = rPaddle.pos.y - ballPos.y;
     // Take absolute value of difference
     diff = (diff > 0.0f) ? diff : -diff;
+    diffR = (diffR > 0.0f) ? diffR : -diffR;
+//    if (diffR > 0.0f)
+//    {
+//        SDL_Log("Ball Pos: %f : %f", ballPos.x, ballPos.y);
+//    }
+
     if (
         // Our y-difference is small enough
             diff <= pHeight / 2.0f &&
@@ -129,15 +180,28 @@ void Game::UpdateGame()
     {
         bVelocity.x *= -1.0f;
     }
+    if (
+        // Our y-difference is small enough
+            diffR <= pHeight / 2.0f &&
+            // We are in the correct x-position
+            ballPos.x >= (1070 - 25.0f) && ballPos.x >= (1070 - 20.0f) &&
+            // The ball is moving to the right
+            bVelocity.x > 0.0f)
+    {
+        bVelocity.x *= -1.0f;
+    }
+//    SDL_Log("Ball Velocity: %f : %f", bVelocity.x, bVelocity.y);
 
         if (ballPos.x <= 0.0f)
         {
+//            bVelocity.x *= -1;
             isRunning = false;
         }
 
-        if (ballPos.x >= (1080 - thickness) && bVelocity.x > 0.0f)
+        if (ballPos.x >= 1080)
         {
-            bVelocity.x *= -1;
+//            bVelocity.x *= -1;
+            isRunning = false;
         }
 
         // Top Wall Collision
@@ -169,18 +233,25 @@ void Game::GenerateOutput()
     wall.y = 720 - thickness;
     SDL_RenderFillRect(renderer,&wall);
 
-    wall.x = 1080 - thickness;
-    wall.y = 0;
-    wall.w = thickness;
-    wall.h = 720;
+//    wall.x = 1080 - thickness;
+//    wall.y = 0;
+//    wall.w = thickness;
+//    wall.h = 720;
 
     // Draw Paddle
     int height = thickness * 7.5;
-    SDL_Rect paddle {
-        static_cast<int>(paddlePos.x - thickness/2.0f),
-        static_cast<int>(paddlePos.y - height /2.0f),
+    SDL_Rect paddleL {
+        static_cast<int>(lPaddle.pos.x - thickness/2.0f),
+        static_cast<int>(lPaddle.pos.y - height /2.0f),
         thickness,
         pHeight
+    };
+
+    SDL_Rect paddleR {
+            static_cast<int>(rPaddle.pos.x - thickness/2.0f),
+            static_cast<int>(rPaddle.pos.y - height /2.0f),
+            thickness,
+            pHeight
     };
 
 
@@ -192,8 +263,9 @@ void Game::GenerateOutput()
         thickness};
 
     // Render all the Things
-    SDL_RenderFillRect(renderer, &wall);
-    SDL_RenderFillRect(renderer, &paddle);
+//    SDL_RenderFillRect(renderer, &wall);
+    SDL_RenderFillRect(renderer, &paddleL);
+    SDL_RenderFillRect(renderer, &paddleR);
     SDL_RenderFillRect(renderer, &ball);
 
     // Swap the buffers

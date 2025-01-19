@@ -10,18 +10,27 @@ struct Vector2
     float y;
 };
 
+struct Paddle
+{
+    Vector2 pos;
+    int paddleDir;
+};
+
 class Game
 {
 public:
     const int thickness = 15;
     const int pHeight = 105;
     float paddleSpeed = 300.0f;
-    Vector2 paddlePos;
+//    Vector2 paddlePos;
     Vector2 ballPos;
     Vector2 bVelocity;
     Uint32 tickCount;
     // 0 if not moving, -1 up, 1 down
-    int paddleDir;
+//    int paddleDir;
+    Paddle lPaddle;
+    Paddle rPaddle;
+    int ballDir;
 
     Game();
 
