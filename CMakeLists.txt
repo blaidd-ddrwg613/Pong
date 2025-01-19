@@ -17,13 +17,13 @@ option(PRODUCTION_BUILD "Make this a production build" OFF)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) #link time optimization
+#set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) #link time optimization
 
 if(MSVC) 
 add_compile_options(/arch:AVX2) #make sure SIMD optimizations take place
 endif()
 
-project(mygame)
+project(test)
 
 
 
@@ -36,7 +36,7 @@ add_subdirectory(thirdparty/stb_truetype)		#loading ttf files
 #add_subdirectory(thirdparty/enet-1.3.17)		#networking
 add_subdirectory(thirdparty/glm)			#math
 add_subdirectory(thirdparty/imgui-docking)		#ui
-add_subdirectory(thirdparty/gl2d)			#rendering
+#add_subdirectory(thirdparty/gl2d)			#rendering
 
 
 # MY_SOURCES is defined to be a list of all the source files for my game 
@@ -88,6 +88,6 @@ target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURC
 
 #enet not working yet on linux for some reason
 target_link_libraries("${CMAKE_PROJECT_NAME}" PRIVATE glm 
-	glad stb_image stb_truetype gl2d imgui SDL2-static)
+	glad stb_image stb_truetype imgui SDL2-static)
 
 
